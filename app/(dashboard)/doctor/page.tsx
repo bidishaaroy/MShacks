@@ -185,57 +185,8 @@ export default function DoctorPage() {
 
         <div className="flex-1 overflow-y-auto p-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left column: escalations + patient info */}
+            {/* Left column: patient info */}
             <div className="lg:col-span-1 space-y-4">
-              {/* Escalation Queue */}
-              <Card className="rounded-2xl shadow-sm border-gray-100">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                      <AlertTriangle className="h-4 w-4 text-amber-500" />
-                      Escalation Queue
-                    </CardTitle>
-                    {openEscalations.length > 0 && (
-                      <Badge className="bg-red-100 text-red-700 border-red-200 text-xs">
-                        {openEscalations.length} open
-                      </Badge>
-                    )}
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {openEscalations.length === 0 ? (
-                    <div className="text-center py-6">
-                      <CheckCircle className="h-8 w-8 text-green-400 mx-auto mb-2" />
-                      <p className="text-sm text-gray-500">No pending escalations</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {openEscalations.map((esc) => (
-                        <div key={esc.id} className="bg-gray-50 rounded-xl p-3 border border-gray-100">
-                          <div className="flex items-start justify-between gap-2 mb-1.5">
-                            <p className="text-xs font-semibold text-gray-800">{esc.patient}</p>
-                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium border ${riskColor(esc.riskLevel)}`}>
-                              {esc.riskLevel}
-                            </span>
-                          </div>
-                          <p className="text-[10px] text-gray-400 mb-1.5">{esc.date}</p>
-                          <p className="text-xs text-gray-600 mb-3 leading-relaxed">{esc.reason}</p>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="w-full h-7 text-xs rounded-lg border-green-200 text-green-700 hover:bg-green-50"
-                            onClick={() => handleResolve(esc.id)}
-                          >
-                            <CheckCircle className="h-3 w-3 mr-1.5" />
-                            Mark Resolved
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
               {/* Patient Info */}
               <Card className="rounded-2xl shadow-sm border-gray-100">
                 <CardHeader className="pb-3">

@@ -5,9 +5,6 @@ import { usePathname } from 'next/navigation'
 import { signOut, useSession } from 'next-auth/react'
 import {
   Activity,
-  Bot,
-  LayoutDashboard,
-  Settings,
   Stethoscope,
   Shield,
   User,
