@@ -1,4 +1,4 @@
-Understanding the Diagnosis or Treatment a Doctor Would Make
+Questions a patient would ask to Understanding the Diagnosis or Treatment a Doctor Would Make
 What exactly is my diagnosis, and how certain is it?
 
 Are there other possible explanations for my symptoms?
