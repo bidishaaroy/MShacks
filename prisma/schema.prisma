@@ -1,0 +1,197 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  DOCTOR
+  ADMIN
+  PATIENT
+}
+
+enum SenderType {
+  PATIENT
+  DOCTOR
+  ADMIN
+  AI
+}
+
+enum ContentType {
+  TEXT
+  IMAGE
+  AUDIO
+  SYSTEM
+}
+
+enum UploadType {
+  IMAGE
+  AUDIO
+  DOCUMENT
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum ConversationStatus {
+  ACTIVE
+  ESCALATED
+  RESOLVED
+}
+
+enum EscalationStatus {
+  OPEN
+  IN_REVIEW
+  RESOLVED
+}
+
+model User {
+  id            String          @id @default(cuid())
+  name          String
+  email         String          @unique
+  passwordHash  String
+  role          Role
+  patientProfile PatientProfile?
+  doctorProfile DoctorProfile?
+  adminProfile  AdminProfile?
+}
+
+model Clinic {
+  id            String          @id @default(cuid())
+  name          String
+  patients      PatientProfile[]
+  doctors       DoctorProfile[]
+  admins        AdminProfile[]
+  policies      ClinicPolicy[]
+}
+
+model PatientProfile {
+  id               String         @id @default(cuid())
+  userId           String         @unique
+  assignedDoctorId String?
+  assignedAdminId  String?
+  dob              DateTime?
+  clinicId         String
+  summary          String
+  user             User           @relation(fields: [userId], references: [id])
+  clinic           Clinic         @relation(fields: [clinicId], references: [id])
+  assignedDoctor   DoctorProfile? @relation("AssignedDoctor", fields: [assignedDoctorId], references: [id])
+  assignedAdmin    AdminProfile?  @relation("AssignedAdmin", fields: [assignedAdminId], references: [id])
+  carePlans        CarePlan[]
+  conversations    Conversation[]
+  uploads          Upload[]
+  escalations      Escalation[]
+}
+
+model DoctorProfile {
+  id            String           @id @default(cuid())
+  userId        String           @unique
+  specialization String
+  clinicId      String
+  user          User             @relation(fields: [userId], references: [id])
+  clinic        Clinic           @relation(fields: [clinicId], references: [id])
+  patients      PatientProfile[] @relation("AssignedDoctor")
+  carePlans     CarePlan[]
+}
+
+model AdminProfile {
+  id            String           @id @default(cuid())
+  userId        String           @unique
+  clinicId      String
+  user          User             @relation(fields: [userId], references: [id])
+  clinic        Clinic           @relation(fields: [clinicId], references: [id])
+  patients      PatientProfile[] @relation("AssignedAdmin")
+}
+
+model CarePlan {
+  id                       String         @id @default(cuid())
+  patientId                String         @unique
+  doctorId                 String
+  diagnosisSummary         String
+  treatmentPlan            String
+  riskFactors              String
+  escalationThresholdsJson Json
+  personalizedNotes        String
+  lastUpdatedAt            DateTime       @updatedAt
+  patient                  PatientProfile @relation(fields: [patientId], references: [id])
+  doctor                   DoctorProfile  @relation(fields: [doctorId], references: [id])
+}
+
+model Conversation {
+  id          String             @id @default(cuid())
+  patientId   String
+  status      ConversationStatus @default(ACTIVE)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  patient     PatientProfile     @relation(fields: [patientId], references: [id])
+  messages    Message[]
+  uploads     Upload[]
+  escalations Escalation[]
+}
+
+model Message {
+  id              String      @id @default(cuid())
+  conversationId  String
+  senderType      SenderType
+  senderId        String?
+  content         String
+  contentType     ContentType
+  riskLevel       RiskLevel?
+  redactedContent String?
+  createdAt       DateTime    @default(now())
+  conversation    Conversation @relation(fields: [conversationId], references: [id])
+}
+
+model Upload {
+  id              String        @id @default(cuid())
+  patientId       String
+  conversationId  String?
+  type            UploadType
+  blobUrl         String
+  mimeType        String
+  uploadedByRole  Role
+  createdAt       DateTime      @default(now())
+  patient         PatientProfile @relation(fields: [patientId], references: [id])
+  conversation    Conversation?  @relation(fields: [conversationId], references: [id])
+}
+
+model Escalation {
+  id                    String            @id @default(cuid())
+  patientId             String
+  conversationId        String
+  riskLevel             RiskLevel
+  reason                String
+  requiresDoctorReview  Boolean
+  requiresAdminFollowup Boolean
+  emergencyAdvice       Boolean
+  status                EscalationStatus  @default(OPEN)
+  createdAt             DateTime          @default(now())
+  resolvedAt            DateTime?
+  patient               PatientProfile    @relation(fields: [patientId], references: [id])
+  conversation          Conversation      @relation(fields: [conversationId], references: [id])
+}
+
+model AuditEvent {
+  id          String   @id @default(cuid())
+  actorType   String
+  actorId     String?
+  action      String
+  metadataJson Json
+  createdAt   DateTime @default(now())
+}
+
+model ClinicPolicy {
+  id        String  @id @default(cuid())
+  clinicId  String
+  title     String
+  body      String
+  category  String
+  clinic    Clinic  @relation(fields: [clinicId], references: [id])
+}

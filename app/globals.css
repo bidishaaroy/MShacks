@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif;
+  color: #0f172a;
+  background: #eef5f9;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.75) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.75);
+  border-radius: 9999px;
+}

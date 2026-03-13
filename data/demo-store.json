@@ -1,0 +1,205 @@
+{
+  "clinic": {
+    "id": "clinic_demo",
+    "name": "Harbor Family Clinic"
+  },
+  "users": [
+    {
+      "id": "user_doctor_demo",
+      "name": "Dr. Maya Lin",
+      "email": "doctor@demo.com",
+      "password": "password123",
+      "passwordHash": "$2b$10$0JH.q4YBfIh0b1A5g3mmbuCTdZYkTfLZNVVRFlE0YyqS/fWznuaCG",
+      "role": "DOCTOR"
+    },
+    {
+      "id": "user_admin_demo",
+      "name": "Jordan Hale",
+      "email": "admin@demo.com",
+      "password": "password123",
+      "passwordHash": "$2b$10$0JH.q4YBfIh0b1A5g3mmbuCTdZYkTfLZNVVRFlE0YyqS/fWznuaCG",
+      "role": "ADMIN"
+    },
+    {
+      "id": "user_patient_demo",
+      "name": "Alex Carter",
+      "email": "patient@demo.com",
+      "password": "password123",
+      "passwordHash": "$2b$10$0JH.q4YBfIh0b1A5g3mmbuCTdZYkTfLZNVVRFlE0YyqS/fWznuaCG",
+      "role": "PATIENT"
+    }
+  ],
+  "profiles": {
+    "doctor": {
+      "id": "doctor_profile_demo",
+      "userId": "user_doctor_demo",
+      "specialization": "Family Medicine",
+      "clinicId": "clinic_demo"
+    },
+    "admin": {
+      "id": "admin_profile_demo",
+      "userId": "user_admin_demo",
+      "clinicId": "clinic_demo"
+    },
+    "patient": {
+      "id": "patient_profile_demo",
+      "userId": "user_patient_demo",
+      "assignedDoctorId": "doctor_profile_demo",
+      "assignedAdminId": "admin_profile_demo",
+      "dob": "1991-06-14",
+      "clinicId": "clinic_demo",
+      "summary": "Mild asthma history. Recovering from respiratory infection with clinic follow-up in progress."
+    }
+  },
+  "carePlan": {
+    "id": "care_plan_demo",
+    "patientId": "patient_profile_demo",
+    "doctorId": "doctor_profile_demo",
+    "diagnosisSummary": "Post-viral respiratory irritation with mild wheeze history. No diagnosis changes without clinician review.",
+    "treatmentPlan": "Continue hydration, rest, and monitor cough severity. Use inhaler only as previously prescribed. Schedule review if symptoms worsen or fever returns.",
+    "riskFactors": "Asthma history, chest tightness with exertion, prolonged cough.",
+    "escalationThresholdsJson": {
+      "redFlags": [
+        "shortness of breath at rest",
+        "bluish lips",
+        "oxygen under 92 if home monitor available",
+        "confusion",
+        "severe chest pain",
+        "high fever over 39C for 48 hours"
+      ],
+      "doctorReviewTriggers": [
+        "new medication request",
+        "symptoms worsening for 3 days",
+        "image shows spreading redness",
+        "persistent wheeze"
+      ],
+      "adminTasks": [
+        "book callback",
+        "send inhaler technique handout",
+        "confirm pharmacy on file"
+      ]
+    },
+    "personalizedNotes": "Patient prefers concise explanations. Reinforce hydration, rest, and when to escalate. Avoid diagnostic language."
+  },
+  "conversation": {
+    "id": "conversation_demo",
+    "patientId": "patient_profile_demo",
+    "status": "ACTIVE",
+    "createdAt": "2026-03-12T18:00:00.000Z",
+    "updatedAt": "2026-03-13T09:30:00.000Z"
+  },
+  "messages": [
+    {
+      "id": "message_1",
+      "conversationId": "conversation_demo",
+      "senderType": "PATIENT",
+      "senderId": "user_patient_demo",
+      "content": "My cough is still bothering me this morning. Can I get a quick summary of what Dr. Lin wants me to watch for?",
+      "contentType": "TEXT",
+      "riskLevel": null,
+      "redactedContent": null,
+      "createdAt": "2026-03-13T09:18:00.000Z"
+    },
+    {
+      "id": "message_2",
+      "conversationId": "conversation_demo",
+      "senderType": "AI",
+      "senderId": null,
+      "content": "Based on your care plan, keep monitoring cough intensity, hydration, and any wheezing. If you develop shortness of breath at rest, severe chest pain, confusion, bluish lips, or a sustained high fever, contact urgent care or emergency services right away.",
+      "contentType": "TEXT",
+      "riskLevel": "MEDIUM",
+      "redactedContent": "Based on your care plan, keep monitoring cough intensity, hydration, and any wheezing.",
+      "createdAt": "2026-03-13T09:19:00.000Z"
+    }
+  ],
+  "uploads": [
+    {
+      "id": "upload_1",
+      "patientId": "patient_profile_demo",
+      "conversationId": "conversation_demo",
+      "type": "IMAGE",
+      "blobUrl": "/mock-blob/patient-uploads/patient_profile_demo/images/throat-check.jpg",
+      "mimeType": "image/jpeg",
+      "uploadedByRole": "PATIENT",
+      "createdAt": "2026-03-13T09:25:00.000Z"
+    }
+  ],
+  "escalations": [
+    {
+      "id": "escalation_1",
+      "patientId": "patient_profile_demo",
+      "conversationId": "conversation_demo",
+      "riskLevel": "HIGH",
+      "reason": "Patient reported chest tightness overnight and requested inhaler dose advice.",
+      "requiresDoctorReview": true,
+      "requiresAdminFollowup": true,
+      "emergencyAdvice": false,
+      "status": "OPEN",
+      "createdAt": "2026-03-13T08:45:00.000Z",
+      "resolvedAt": null
+    }
+  ],
+  "auditEvents": [
+    {
+      "id": "audit_1",
+      "actorType": "AI",
+      "actorId": null,
+      "action": "MESSAGE_ESCALATED",
+      "metadataJson": {
+        "patientId": "patient_profile_demo",
+        "conversationId": "conversation_demo",
+        "reason": "Medication advice request outside doctor-authored instruction."
+      },
+      "createdAt": "2026-03-13T08:45:00.000Z"
+    }
+  ],
+  "clinicPolicies": [
+    {
+      "id": "policy_1",
+      "clinicId": "clinic_demo",
+      "title": "Emergency Safety",
+      "body": "Do not reassure patients about emergency red flags. If symptoms include severe chest pain, breathing difficulty at rest, confusion, or signs of collapse, instruct immediate emergency care.",
+      "category": "emergency"
+    },
+    {
+      "id": "policy_2",
+      "clinicId": "clinic_demo",
+      "title": "Medication Boundary",
+      "body": "The assistant cannot change medications or doses unless the exact instruction already exists in the doctor-authored care plan.",
+      "category": "clinical"
+    },
+    {
+      "id": "policy_3",
+      "clinicId": "clinic_demo",
+      "title": "Admin Workflow",
+      "body": "The assistant may help with scheduling, follow-up reminders, callback requests, intake clarification, and clinic FAQ answers.",
+      "category": "admin"
+    }
+  ],
+  "styleNotes": [
+    {
+      "id": "style_1",
+      "doctorId": "doctor_profile_demo",
+      "tone": "calm, direct, practical",
+      "example": "Use short explanations, mention when to escalate, and avoid sounding overly certain."
+    }
+  ],
+  "adminTasks": [
+    {
+      "id": "task_1",
+      "title": "Call patient to confirm pharmacy on file",
+      "status": "OPEN",
+      "patientId": "patient_profile_demo",
+      "suggestedBy": "AI",
+      "createdAt": "2026-03-13T08:50:00.000Z"
+    },
+    {
+      "id": "task_2",
+      "title": "Send respiratory symptom handout after callback",
+      "status": "DONE",
+      "patientId": "patient_profile_demo",
+      "suggestedBy": "AI",
+      "createdAt": "2026-03-12T19:20:00.000Z"
+    }
+  ]
+}
