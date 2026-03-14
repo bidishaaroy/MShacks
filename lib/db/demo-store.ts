@@ -16,7 +16,18 @@ async function ensureStoreFile() {
 export async function readDemoStore(): Promise<DemoStore> {
   await ensureStoreFile();
   const file = await fs.readFile(storePath, "utf8");
-  return JSON.parse(file) as DemoStore;
+  const parsed = JSON.parse(file) as Partial<DemoStore>;
+
+  return {
+    ...(demoStoreSource as DemoStore),
+    ...parsed,
+    appointments: parsed.appointments ?? (demoStoreSource as DemoStore).appointments,
+    carePlanOptions: parsed.carePlanOptions ?? (demoStoreSource as DemoStore).carePlanOptions,
+    onboardingChecklist: parsed.onboardingChecklist ?? (demoStoreSource as DemoStore).onboardingChecklist,
+    adminSuggestions: parsed.adminSuggestions ?? (demoStoreSource as DemoStore).adminSuggestions,
+    clientSummaries: parsed.clientSummaries ?? (demoStoreSource as DemoStore).clientSummaries,
+    doctorThreads: parsed.doctorThreads ?? (demoStoreSource as DemoStore).doctorThreads
+  };
 }
 
 export async function writeDemoStore(store: DemoStore) {

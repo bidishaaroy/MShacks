@@ -4,10 +4,15 @@ import { prisma } from "@/lib/db/prisma";
 import { readDemoStore, writeDemoStore } from "@/lib/db/demo-store";
 import type {
   AdminTask,
+  AdminSuggestion,
+  Appointment,
   AppUser,
   AuditEvent,
   CarePlan,
+  CarePlanOption,
+  ChecklistItem,
   ClinicPolicy,
+  ClientSummary,
   DemoStore,
   Escalation,
   Message,
@@ -30,6 +35,12 @@ export interface DashboardData {
   policies: ClinicPolicy[];
   styleNote: DemoStore["styleNotes"][number] | undefined;
   adminTasks: AdminTask[];
+  appointments: Appointment[];
+  onboardingChecklist: ChecklistItem[];
+  adminSuggestions: AdminSuggestion[];
+  clientSummaries: ClientSummary[];
+  doctorThreads: DemoStore["doctorThreads"];
+  carePlanOptions: CarePlanOption[];
 }
 
 function mapToDashboard(store: DemoStore): DashboardData {
@@ -46,7 +57,18 @@ function mapToDashboard(store: DemoStore): DashboardData {
     escalations: store.escalations.sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
     policies: store.clinicPolicies,
     styleNote: store.styleNotes[0],
-    adminTasks: store.adminTasks.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    adminTasks: store.adminTasks.sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+    appointments: store.appointments.sort((a, b) => a.scheduledFor.localeCompare(b.scheduledFor)),
+    onboardingChecklist: store.onboardingChecklist,
+    adminSuggestions: store.adminSuggestions,
+    clientSummaries: store.clientSummaries,
+    doctorThreads: store.doctorThreads,
+    carePlanOptions: store.carePlanOptions ?? [
+      {
+        ...store.carePlan,
+        patientName: store.users.find((user) => user.role === "PATIENT")?.name ?? "Assigned patient"
+      }
+    ]
   };
 }
 
@@ -71,6 +93,10 @@ export function getRepository() {
       },
       async getDashboardData() {
         return getDemoDashboardData();
+      },
+      async getCurrentUser(userId: string) {
+        const store = await readDemoStore();
+        return store.users.find((user) => user.id === userId) ?? null;
       },
       async appendPatientMessage(message: Omit<Message, "id" | "createdAt" | "redactedContent" | "riskLevel">) {
         const store = await updateDemoStore(async (draft) => {
@@ -124,6 +150,15 @@ export function getRepository() {
       },
       async updateCarePlan(input: Omit<CarePlan, "id" | "doctorId" | "lastUpdatedAt">) {
         const store = await updateDemoStore(async (draft) => {
+          draft.carePlanOptions = (draft.carePlanOptions ?? []).map((plan) =>
+            plan.patientId === input.patientId
+              ? {
+                  ...plan,
+                  ...input,
+                  lastUpdatedAt: new Date().toISOString()
+                }
+              : plan
+          );
           draft.carePlan = {
             ...draft.carePlan,
             ...input,
@@ -150,6 +185,66 @@ export function getRepository() {
           return draft;
         });
         return store.adminTasks.find((task) => task.id === taskId) ?? null;
+      },
+      async createAdminTask(task: Omit<AdminTask, "id" | "createdAt">) {
+        const store = await updateDemoStore(async (draft) => {
+          draft.adminTasks.unshift({
+            ...task,
+            id: randomUUID(),
+            createdAt: new Date().toISOString()
+          });
+          return draft;
+        });
+        return store.adminTasks[0];
+      },
+      async updateChecklistItem(itemId: string, done: boolean) {
+        const store = await updateDemoStore(async (draft) => {
+          draft.onboardingChecklist = draft.onboardingChecklist.map((item) =>
+            item.id === itemId ? { ...item, done } : item
+          );
+          return draft;
+        });
+        return store.onboardingChecklist.find((item) => item.id === itemId) ?? null;
+      },
+      async selectAdminSuggestion(suggestionId: string) {
+        const store = await updateDemoStore(async (draft) => {
+          draft.adminSuggestions = draft.adminSuggestions.map((suggestion) =>
+            suggestion.id === suggestionId ? { ...suggestion, selected: true } : suggestion
+          );
+          return draft;
+        });
+        return store.adminSuggestions.find((suggestion) => suggestion.id === suggestionId) ?? null;
+      },
+      async createAppointment(appointment: Omit<Appointment, "id">) {
+        const store = await updateDemoStore(async (draft) => {
+          draft.appointments.push({
+            ...appointment,
+            id: randomUUID()
+          });
+          return draft;
+        });
+        return store.appointments.at(-1)!;
+      },
+      async scheduleEscalation(escalationId: string) {
+        const store = await updateDemoStore(async (draft) => {
+          draft.escalations = draft.escalations.map((item) =>
+            item.id === escalationId ? { ...item, status: "IN_REVIEW" } : item
+          );
+          return draft;
+        });
+        return store.escalations.find((item) => item.id === escalationId) ?? null;
+      },
+      async findRecentEscalation(patientId: string, conversationId: string, windowMs: number) {
+        const store = await readDemoStore();
+        const threshold = Date.now() - windowMs;
+        return (
+          store.escalations.find(
+            (escalation) =>
+              escalation.patientId === patientId &&
+              escalation.conversationId === conversationId &&
+              new Date(escalation.createdAt).getTime() >= threshold
+          ) ?? null
+        );
       }
     };
   }
@@ -159,6 +254,20 @@ export function getRepository() {
   return {
     async findUserByEmail(email: string): Promise<AppUser | null> {
       const user = await db.user.findUnique({ where: { email } });
+      if (!user) {
+        return null;
+      }
+
+      return {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        passwordHash: user.passwordHash,
+        role: user.role as Role
+      };
+    },
+    async getCurrentUser(userId: string): Promise<AppUser | null> {
+      const user = await db.user.findUnique({ where: { id: userId } });
       if (!user) {
         return null;
       }
@@ -237,6 +346,57 @@ export function getRepository() {
             patientId: patient.id,
             suggestedBy: "AI",
             createdAt: new Date().toISOString()
+          }
+        ],
+        appointments: [
+          {
+            id: "appointment_db_fallback",
+            patientId: patient.id,
+            scheduledFor: new Date(Date.now() + 86400000).toISOString(),
+            scheduledByRole: "ADMIN",
+            scheduledByName: "Clinic admin",
+            reason: "Demo follow-up",
+            status: "SCHEDULED",
+            assignedTo: "Dr. Maya Lin",
+            notes: "Database mode fallback appointment"
+          }
+        ],
+        onboardingChecklist: [
+          { id: "checklist_db_1", label: "Confirm intake form completion", done: false },
+          { id: "checklist_db_2", label: "Confirm callback window", done: false }
+        ],
+        adminSuggestions: [
+          {
+            id: "suggestion_db_1",
+            title: "Prioritize escalated appointments",
+            detail: "Reserve same-day slots for urgent escalations.",
+            selected: false,
+            createUrgentAppointment: true
+          }
+        ],
+        clientSummaries: [
+          {
+            id: patient.id,
+            name: users.find((user: any) => user.id === patient.userId)?.name ?? "Assigned patient",
+            status: "Active",
+            nextReview: new Date(Date.now() + 86400000).toISOString(),
+            summary: patient.summary
+          }
+        ],
+        doctorThreads: [
+          {
+            id: "thread_db_fallback",
+            patientName: users.find((user: any) => user.id === patient.userId)?.name ?? "Assigned patient",
+            summary: patient.summary,
+            messages: []
+          }
+        ],
+        carePlanOptions: [
+          {
+            ...carePlan,
+            escalationThresholdsJson: carePlan.escalationThresholdsJson as CarePlan["escalationThresholdsJson"],
+            lastUpdatedAt: carePlan.lastUpdatedAt.toISOString(),
+            patientName: users.find((user: any) => user.id === patient.userId)?.name ?? "Assigned patient"
           }
         ]
       };
@@ -320,6 +480,78 @@ export function getRepository() {
     },
     async updateAdminTask() {
       return null;
+    },
+    async createAdminTask(task: Omit<AdminTask, "id" | "createdAt">) {
+      const store = await updateDemoStore(async (draft) => {
+        draft.adminTasks.unshift({
+          ...task,
+          id: randomUUID(),
+          createdAt: new Date().toISOString()
+        });
+        return draft;
+      });
+      return store.adminTasks[0];
+    },
+    async updateChecklistItem(itemId: string, done: boolean) {
+      const store = await updateDemoStore(async (draft) => {
+        draft.onboardingChecklist = draft.onboardingChecklist.map((item) =>
+          item.id === itemId ? { ...item, done } : item
+        );
+        return draft;
+      });
+      return store.onboardingChecklist.find((item) => item.id === itemId) ?? null;
+    },
+    async selectAdminSuggestion(suggestionId: string) {
+      const store = await updateDemoStore(async (draft) => {
+        draft.adminSuggestions = draft.adminSuggestions.map((suggestion) =>
+          suggestion.id === suggestionId ? { ...suggestion, selected: true } : suggestion
+        );
+        return draft;
+      });
+      return store.adminSuggestions.find((suggestion) => suggestion.id === suggestionId) ?? null;
+    },
+    async createAppointment(appointment: Omit<Appointment, "id">) {
+      const store = await updateDemoStore(async (draft) => {
+        draft.appointments.push({
+          ...appointment,
+          id: randomUUID()
+        });
+        return draft;
+      });
+      return store.appointments.at(-1)!;
+    },
+    async scheduleEscalation(escalationId: string) {
+      const store = await updateDemoStore(async (draft) => {
+        draft.escalations = draft.escalations.map((item) =>
+          item.id === escalationId ? { ...item, status: "IN_REVIEW" } : item
+        );
+        return draft;
+      });
+      return store.escalations.find((item) => item.id === escalationId) ?? null;
+    },
+    async findRecentEscalation(patientId: string, conversationId: string, windowMs: number) {
+      const escalation = await db.escalation.findFirst({
+        where: {
+          patientId,
+          conversationId,
+          createdAt: {
+            gte: new Date(Date.now() - windowMs)
+          }
+        },
+        orderBy: { createdAt: "desc" }
+      });
+
+      if (!escalation) {
+        return null;
+      }
+
+      return {
+        ...escalation,
+        riskLevel: escalation.riskLevel as Escalation["riskLevel"],
+        status: escalation.status as Escalation["status"],
+        createdAt: escalation.createdAt.toISOString(),
+        resolvedAt: escalation.resolvedAt?.toISOString() ?? null
+      };
     }
   };
 }

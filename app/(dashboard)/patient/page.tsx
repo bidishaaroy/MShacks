@@ -1,7 +1,7 @@
 import { AppShell } from "@/components/layout/app-shell";
+import { EscalateButton } from "@/components/chat/escalate-button";
+import { QuickConditionPrompts } from "@/components/chat/quick-condition-prompts";
 import { ChatWorkspace } from "@/components/chat/chat-workspace";
-import { DisclaimerBanner } from "@/components/layout/disclaimer-banner";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getRepository } from "@/lib/data/repository";
@@ -17,11 +17,10 @@ export default async function PatientPage() {
       data={data}
       rightPanel={
         <>
-          <DisclaimerBanner />
           <Card>
             <CardHeader>
               <CardTitle>Care plan summary</CardTitle>
-              <CardDescription>Current doctor-authored guidance.</CardDescription>
+              <CardDescription>Current doctor-authored guidance and scheduling support.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -38,9 +37,7 @@ export default async function PatientPage() {
                   ))}
                 </div>
               </div>
-              <Button variant="destructive" className="w-full">
-                Escalate to clinic
-              </Button>
+              <EscalateButton patientId={data.patient.id} conversationId={data.conversation.id} />
             </CardContent>
           </Card>
         </>
@@ -49,14 +46,19 @@ export default async function PatientPage() {
       <div className="mb-4 flex items-center justify-between gap-4">
         <div>
           <p className="text-sm uppercase tracking-[0.28em] text-slate-400">Patient workspace</p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">Ask about your plan, upload symptoms, or request clinic follow-up.</h1>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">Secure messaging and scheduling with your clinic team.</h1>
         </div>
+      </div>
+      <div className="mb-4">
+        <QuickConditionPrompts patientId={data.patient.id} conversationId={data.conversation.id} />
       </div>
       <ChatWorkspace
         patientId={data.patient.id}
         conversationId={data.conversation.id}
         role="PATIENT"
         messages={data.messages}
+        placeholder="Ask Clin AI Bot about your care plan or scheduling"
+        helperText="Choose a preset condition above or ask about your plan, follow-up, or clinic scheduling."
       />
     </AppShell>
   );

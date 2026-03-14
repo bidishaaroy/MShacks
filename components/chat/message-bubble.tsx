@@ -7,7 +7,7 @@ const senderConfig = {
   AI: {
     icon: Bot,
     bubble: "bg-sky-50 text-slate-900 border border-sky-100",
-    label: "AI assistant",
+    label: "Clin AI Bot",
     badge: "default" as const
   },
   PATIENT: {

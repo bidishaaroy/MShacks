@@ -1,9 +1,9 @@
-import { Bell, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { Brand } from "@/components/layout/brand";
 import { SideRail } from "@/components/layout/side-rail";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import type { DashboardData } from "@/lib/data/repository";
 import type { Role } from "@/lib/types";
 
@@ -21,7 +21,7 @@ export function AppShell({
   const activeUser = data.users.find((user) => user.role === role);
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(56,189,248,0.18),transparent_28%),radial-gradient(circle_at_bottom_right,_rgba(16,185,129,0.14),transparent_24%),linear-gradient(180deg,#f8fbff_0%,#eef5f9_100%)] text-slate-950">
+    <div className="app-shell-bg min-h-screen text-slate-950">
       <div className="mx-auto flex min-h-screen max-w-[1640px]">
         <SideRail role={role} />
         <div className="flex min-h-screen flex-1 flex-col px-4 py-4 lg:px-6">
@@ -29,9 +29,7 @@ export function AppShell({
             <Brand />
             <div className="flex items-center gap-3">
               <Badge variant="success">Safety policies enforced</Badge>
-              <Button variant="ghost" size="icon">
-                <Bell className="h-4 w-4" />
-              </Button>
+              <ThemeToggle />
               <div className="flex items-center gap-3 rounded-full bg-slate-50 px-3 py-2">
                 <Avatar>
                   <AvatarFallback>{activeUser?.name.slice(0, 2).toUpperCase()}</AvatarFallback>

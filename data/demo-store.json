@@ -81,35 +81,71 @@
     },
     "personalizedNotes": "Patient prefers concise explanations. Reinforce hydration, rest, and when to escalate. Avoid diagnostic language."
   },
+  "carePlanOptions": [
+    {
+      "id": "care_plan_demo",
+      "patientId": "patient_profile_demo",
+      "doctorId": "doctor_profile_demo",
+      "patientName": "Alex Carter",
+      "diagnosisSummary": "Post-viral respiratory irritation with mild wheeze history. No diagnosis changes without clinician review.",
+      "treatmentPlan": "Continue hydration, rest, and monitor cough severity. Use inhaler only as previously prescribed. Schedule review if symptoms worsen or fever returns.",
+      "riskFactors": "Asthma history, chest tightness with exertion, prolonged cough.",
+      "escalationThresholdsJson": {
+        "redFlags": ["shortness of breath at rest", "bluish lips", "oxygen under 92 if home monitor available", "confusion", "severe chest pain", "high fever over 39C for 48 hours"],
+        "doctorReviewTriggers": ["new medication request", "symptoms worsening for 3 days", "image shows spreading redness", "persistent wheeze"],
+        "adminTasks": ["book callback", "send inhaler technique handout", "confirm pharmacy on file"]
+      },
+      "personalizedNotes": "Patient prefers concise explanations. Reinforce hydration, rest, and when to escalate. Avoid diagnostic language."
+    },
+    {
+      "id": "care_plan_priya",
+      "patientId": "patient_profile_priya",
+      "doctorId": "doctor_profile_demo",
+      "patientName": "Priya Shah",
+      "diagnosisSummary": "Medication review follow-up. Symptoms are stable and non-urgent.",
+      "treatmentPlan": "Continue current medication routine exactly as last documented. Focus on reminder adherence and routine follow-up scheduling.",
+      "riskFactors": "Missed reminder risk, delayed follow-up scheduling.",
+      "escalationThresholdsJson": {
+        "redFlags": ["new chest pain", "fainting", "difficulty breathing"],
+        "doctorReviewTriggers": ["new medication request", "persistent symptom worsening", "missed medications for 2 days"],
+        "adminTasks": ["send reminder plan", "confirm follow-up slot"]
+      },
+      "personalizedNotes": "Keep language reassuring but brief. This patient mainly asks operational follow-up questions."
+    },
+    {
+      "id": "care_plan_marcus",
+      "patientId": "patient_profile_marcus",
+      "doctorId": "doctor_profile_demo",
+      "patientName": "Marcus Lee",
+      "diagnosisSummary": "Pending intake completion with active respiratory concern under review.",
+      "treatmentPlan": "Maintain symptom monitoring and prioritize same-day clinical review if breathing becomes tighter or rest symptoms appear.",
+      "riskFactors": "Incomplete intake, worsening breathing concerns, urgent callback risk.",
+      "escalationThresholdsJson": {
+        "redFlags": ["shortness of breath at rest", "severe chest pain", "confusion", "bluish lips"],
+        "doctorReviewTriggers": ["breathing tighter than baseline", "urgent callback request", "new medication question"],
+        "adminTasks": ["book urgent review", "confirm callback number", "send emergency instructions"]
+      },
+      "personalizedNotes": "Be direct and escalate quickly if any breathing-related concern increases."
+    }
+  ],
   "conversation": {
     "id": "conversation_demo",
     "patientId": "patient_profile_demo",
     "status": "ACTIVE",
-    "createdAt": "2026-03-12T18:00:00.000Z",
-    "updatedAt": "2026-03-13T09:30:00.000Z"
+    "createdAt": "2026-03-14T08:00:00.000Z",
+    "updatedAt": "2026-03-14T08:00:30.000Z"
   },
   "messages": [
     {
-      "id": "message_1",
-      "conversationId": "conversation_demo",
-      "senderType": "PATIENT",
-      "senderId": "user_patient_demo",
-      "content": "My cough is still bothering me this morning. Can I get a quick summary of what Dr. Lin wants me to watch for?",
-      "contentType": "TEXT",
-      "riskLevel": null,
-      "redactedContent": null,
-      "createdAt": "2026-03-13T09:18:00.000Z"
-    },
-    {
-      "id": "message_2",
+      "id": "message_welcome",
       "conversationId": "conversation_demo",
       "senderType": "AI",
       "senderId": null,
-      "content": "Based on your care plan, keep monitoring cough intensity, hydration, and any wheezing. If you develop shortness of breath at rest, severe chest pain, confusion, bluish lips, or a sustained high fever, contact urgent care or emergency services right away.",
+      "content": "Hi Alex, I’m Clin AI Bot. I can explain your doctor’s care-plan notes, help with follow-up scheduling, and remind you when to contact the clinic.",
       "contentType": "TEXT",
-      "riskLevel": "MEDIUM",
-      "redactedContent": "Based on your care plan, keep monitoring cough intensity, hydration, and any wheezing.",
-      "createdAt": "2026-03-13T09:19:00.000Z"
+      "riskLevel": "LOW",
+      "redactedContent": "Hi Alex, I’m Clin AI Bot. I can explain your doctor’s care-plan notes, help with follow-up scheduling, and remind you when to contact the clinic.",
+      "createdAt": "2026-03-14T08:00:30.000Z"
     }
   ],
   "uploads": [
@@ -200,6 +236,174 @@
       "patientId": "patient_profile_demo",
       "suggestedBy": "AI",
       "createdAt": "2026-03-12T19:20:00.000Z"
+    }
+  ],
+  "appointments": [
+    {
+      "id": "appointment_1",
+      "patientId": "patient_profile_demo",
+      "scheduledFor": "2026-03-15T10:30:00.000Z",
+      "scheduledByRole": "ADMIN",
+      "scheduledByName": "Jordan Hale",
+      "reason": "Doctor follow-up for cough review",
+      "status": "SCHEDULED",
+      "assignedTo": "Dr. Maya Lin",
+      "notes": "Standard clinic review slot"
+    },
+    {
+      "id": "appointment_2",
+      "patientId": "patient_profile_demo",
+      "scheduledFor": "2026-03-13T16:00:00.000Z",
+      "scheduledByRole": "ADMIN",
+      "scheduledByName": "Jordan Hale",
+      "reason": "Urgent callback after escalation",
+      "status": "URGENT",
+      "assignedTo": "Dr. Maya Lin",
+      "notes": "Escalated case should be reviewed same day"
+    }
+  ],
+  "onboardingChecklist": [
+    {
+      "id": "checklist_1",
+      "label": "Verify pharmacy contact on file",
+      "done": false
+    },
+    {
+      "id": "checklist_2",
+      "label": "Confirm scheduling preference and callback window",
+      "done": false
+    },
+    {
+      "id": "checklist_3",
+      "label": "Send intake form and secure messaging orientation",
+      "done": true
+    }
+  ],
+  "adminSuggestions": [
+    {
+      "id": "suggestion_1",
+      "title": "Schedule urgent doctor callback",
+      "detail": "Patient escalations with breathing-related symptoms should be placed on the urgent callback calendar.",
+      "selected": false,
+      "createUrgentAppointment": true
+    },
+    {
+      "id": "suggestion_2",
+      "title": "Send intake reminder",
+      "detail": "Bundle reminder with appointment confirmation to reduce missed forms.",
+      "selected": false
+    }
+  ],
+  "clientSummaries": [
+    {
+      "id": "client_1",
+      "name": "Alex Carter",
+      "status": "Needs follow-up",
+      "nextReview": "2026-03-15T10:30:00.000Z",
+      "summary": "Respiratory recovery with escalation thresholds already set."
+    },
+    {
+      "id": "client_2",
+      "name": "Priya Shah",
+      "status": "Stable care plan",
+      "nextReview": "2026-03-17T13:00:00.000Z",
+      "summary": "Medication reminders only. No urgent issues flagged."
+    },
+    {
+      "id": "client_3",
+      "name": "Marcus Lee",
+      "status": "Intake pending",
+      "nextReview": "2026-03-18T09:30:00.000Z",
+      "summary": "Awaiting intake completion and first scheduling confirmation."
+    }
+  ],
+  "doctorThreads": [
+    {
+      "id": "thread_alex",
+      "patientName": "Alex Carter",
+      "summary": "Respiratory recovery, care-plan explanation, and escalation thresholds.",
+      "messages": [
+        {
+          "id": "thread_alex_1",
+          "conversationId": "thread_alex",
+          "senderType": "PATIENT",
+          "senderId": "patient_alex",
+          "content": "Can you remind me what warning signs mean I should call the clinic?",
+          "contentType": "TEXT",
+          "riskLevel": null,
+          "redactedContent": null,
+          "createdAt": "2026-03-14T07:45:00.000Z"
+        },
+        {
+          "id": "thread_alex_2",
+          "conversationId": "thread_alex",
+          "senderType": "AI",
+          "senderId": null,
+          "content": "Watch for shortness of breath at rest, severe chest pain, confusion, bluish lips, or a high fever that stays elevated. If any of those happen, contact urgent care or emergency services right away.",
+          "contentType": "TEXT",
+          "riskLevel": "MEDIUM",
+          "redactedContent": null,
+          "createdAt": "2026-03-14T07:45:20.000Z"
+        }
+      ]
+    },
+    {
+      "id": "thread_priya",
+      "patientName": "Priya Shah",
+      "summary": "Stable plan, mostly scheduling and reminder questions.",
+      "messages": [
+        {
+          "id": "thread_priya_1",
+          "conversationId": "thread_priya",
+          "senderType": "PATIENT",
+          "senderId": "patient_priya",
+          "content": "Can I move my review to next Tuesday afternoon?",
+          "contentType": "TEXT",
+          "riskLevel": null,
+          "redactedContent": null,
+          "createdAt": "2026-03-14T08:10:00.000Z"
+        },
+        {
+          "id": "thread_priya_2",
+          "conversationId": "thread_priya",
+          "senderType": "AI",
+          "senderId": null,
+          "content": "I can help with appointment requests. If you want, I can send that scheduling request to the clinic team for review.",
+          "contentType": "TEXT",
+          "riskLevel": "LOW",
+          "redactedContent": null,
+          "createdAt": "2026-03-14T08:10:18.000Z"
+        }
+      ]
+    },
+    {
+      "id": "thread_marcus",
+      "patientName": "Marcus Lee",
+      "summary": "Intake pending, urgent callback requested after worsening symptoms.",
+      "messages": [
+        {
+          "id": "thread_marcus_1",
+          "conversationId": "thread_marcus",
+          "senderType": "PATIENT",
+          "senderId": "patient_marcus",
+          "content": "My breathing feels tighter this evening and I’m not sure if I should wait.",
+          "contentType": "TEXT",
+          "riskLevel": null,
+          "redactedContent": null,
+          "createdAt": "2026-03-14T08:20:00.000Z"
+        },
+        {
+          "id": "thread_marcus_2",
+          "conversationId": "thread_marcus",
+          "senderType": "AI",
+          "senderId": null,
+          "content": "Because breathing changes can become urgent, please contact the clinic right away. If you develop shortness of breath at rest or severe chest pain, seek urgent care immediately.",
+          "contentType": "TEXT",
+          "riskLevel": "HIGH",
+          "redactedContent": null,
+          "createdAt": "2026-03-14T08:20:20.000Z"
+        }
+      ]
     }
   ]
 }

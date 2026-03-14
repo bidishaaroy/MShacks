@@ -9,12 +9,16 @@ export function ChatWorkspace({
   patientId,
   conversationId,
   role,
-  messages
+  messages,
+  placeholder,
+  helperText
 }: {
   patientId: string;
   conversationId: string;
   role: Role;
   messages: Message[];
+  placeholder?: string;
+  helperText?: string;
 }) {
   const router = useRouter();
 
@@ -25,6 +29,8 @@ export function ChatWorkspace({
         patientId={patientId}
         conversationId={conversationId}
         role={role}
+        placeholder={placeholder}
+        helperText={helperText}
         onCompleted={() => router.refresh()}
       />
     </>

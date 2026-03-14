@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { buildAssistantFallback } from "@/lib/ai/fallback";
 import { getSession } from "@/lib/auth/session";
 import { buildAssistantPrompt } from "@/lib/ai/prompt";
 import { getRepository } from "@/lib/data/repository";
@@ -6,7 +7,7 @@ import { runPolicyEngine } from "@/lib/policy/engine";
 import { aiResponseSchema } from "@/lib/validators/ai";
 import { sendMessageSchema } from "@/lib/validators/forms";
 import { getDeidService } from "@/services/deid";
-import { getAIProvider } from "@/services/gemini";
+import { getAIProvider, getMockAIProvider } from "@/services/gemini";
 
 export async function POST(request: Request) {
   const session = await getSession();
@@ -23,32 +24,83 @@ export async function POST(request: Request) {
   const dashboard = await repository.getDashboardData();
   const deid = getDeidService();
   const provider = getAIProvider();
+  const senderType = session.role === "PATIENT" ? "PATIENT" : session.role === "DOCTOR" ? "DOCTOR" : "ADMIN";
 
-  await repository.appendPatientMessage({
+  const userMessage = await repository.appendPatientMessage({
     conversationId: parsed.data.conversationId,
-    senderType: "PATIENT",
+    senderType,
     senderId: session.userId,
     content: parsed.data.message,
     contentType: "TEXT"
   });
 
-  const prompt = buildAssistantPrompt({
-    carePlan: dashboard.carePlan,
-    policies: dashboard.policies,
-    recentMessages: dashboard.messages.slice(-8),
-    styleNote: dashboard.styleNote
-  });
+  if (session.role !== "PATIENT") {
+    await repository.saveAuditEvent({
+      actorType: session.role,
+      actorId: session.userId,
+      action: "STAFF_MESSAGE_ADDED",
+      metadataJson: {
+        conversationId: parsed.data.conversationId,
+        patientId: parsed.data.patientId
+      }
+    });
 
-  const draft = aiResponseSchema.parse(
-    await provider.generateStructuredResponse({
-      prompt,
-      userMessage: parsed.data.message,
-      carePlanSummary: dashboard.carePlan.treatmentPlan,
-      clinicPolicies: dashboard.policies.map((policy) => `${policy.title}: ${policy.body}`),
-      role: session.role
-    })
-  );
+    return NextResponse.json({ ok: true, message: userMessage });
+  }
 
+  const recentMessages = [
+    ...dashboard.messages.slice(-7),
+    {
+      id: "pending",
+      conversationId: parsed.data.conversationId,
+      senderType: "PATIENT" as const,
+      senderId: session.userId,
+      content: parsed.data.message,
+      contentType: "TEXT" as const,
+      riskLevel: null,
+      redactedContent: null,
+      createdAt: new Date().toISOString()
+    }
+  ];
+
+  let draft;
+  try {
+    draft = aiResponseSchema.parse(
+      await provider.generateStructuredResponse({
+        prompt: buildAssistantPrompt({
+          carePlan: dashboard.carePlan,
+          policies: dashboard.policies,
+          recentMessages,
+          styleNote: dashboard.styleNote
+        }),
+        userMessage: parsed.data.message,
+        carePlanSummary: dashboard.carePlan.treatmentPlan,
+        clinicPolicies: dashboard.policies.map((policy) => `${policy.title}: ${policy.body}`),
+        role: session.role
+      })
+    );
+  } catch (error) {
+    console.error("ClinAI Bridge assistant error", error);
+    try {
+      draft = aiResponseSchema.parse(
+        await getMockAIProvider().generateStructuredResponse({
+          prompt: buildAssistantPrompt({
+            carePlan: dashboard.carePlan,
+            policies: dashboard.policies,
+            recentMessages,
+            styleNote: dashboard.styleNote
+          }),
+          userMessage: parsed.data.message,
+          carePlanSummary: dashboard.carePlan.treatmentPlan,
+          clinicPolicies: dashboard.policies.map((policy) => `${policy.title}: ${policy.body}`),
+          role: session.role
+        })
+      );
+    } catch (mockError) {
+      console.error("ClinAI Bridge mock assistant error", mockError);
+      draft = buildAssistantFallback();
+    }
+  }
   const policyResult = runPolicyEngine({
     role: session.role,
     message: parsed.data.message,
@@ -84,7 +136,8 @@ export async function POST(request: Request) {
     metadataJson: {
       intent: policyResult.approved.intent,
       requiresDoctorReview: policyResult.approved.requires_doctor_review,
-      requiresAdminFollowup: policyResult.approved.requires_admin_followup
+      requiresAdminFollowup: policyResult.approved.requires_admin_followup,
+      suggestedFollowUp: policyResult.approved.suggested_follow_up
     }
   });
 

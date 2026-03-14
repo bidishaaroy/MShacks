@@ -1,16 +1,17 @@
 # ClinAI Bridge
 
-ClinAI Bridge is a polished MVP clinic workflow application built with Next.js, TypeScript, Tailwind CSS, Prisma, PostgreSQL, and adapter-based integrations for Gemini, Azure Blob Storage, and Azure Health Data Services de-identification.
+ClinAI Bridge is a polished MVP medical scheduling and secure-messaging workflow application built with Next.js, TypeScript, Tailwind CSS, Prisma, PostgreSQL, and adapter-based integrations for Gemini, Azure Blob Storage, and Azure Health Data Services de-identification.
 
 ## What’s included
 
-- Patient portal with guardrailed AI chat, photo upload, voice-note upload, care-plan summary, and escalation affordances
-- Staff portal for doctors and admin staff with role-based routing
-- Doctor care-plan editor, escalation review, and patient context workspace
-- Admin intake queue, callback task board, and AI-generated operational suggestions
+- Patient portal with Clin AI Bot secure messaging, preset condition prompts, care-plan summary, escalation affordances, and appointment scheduling
+- Staff portals for doctors and admin staff with role-based routing
+- Doctor care-plan editor with patient switching, escalation review, multi-patient conversation review, and calendar visibility
+- Admin intake queue, clickable onboarding checklist, callback task board, AI-generated operational suggestions, and appointment calendar
 - Assistant activity view with attributable AI actions and audit-style review
-- Structured AI response pipeline with Zod validation and a server-side policy engine
+- Structured Gemini response pipeline with Zod validation, resilient mock fallback, and a server-side policy engine
 - Prisma schema plus a local JSON-backed fallback so the MVP still runs without Postgres
+- Global light/dark theme toggle across the app shell
 
 ## Demo accounts
 
@@ -39,7 +40,7 @@ cp .env.example .env.local
 - Run `npx prisma db push`
 - Run `npm run seed`
 
-If `DATABASE_URL` is not configured, the app falls back to `data/demo-store.local.json` and still works locally.
+If `DATABASE_URL` is not configured, the app falls back to `data/demo-store.local.json` and still works locally. Deleting `data/demo-store.local.json` resets the demo state to a fresh seeded site.
 
 4. Start the app:
 
@@ -77,7 +78,7 @@ npm run dev
 - `lib/data`
   - Repository abstraction for Prisma or local demo JSON
 - `services/gemini`
-  - Gemini adapter and deterministic mock provider
+  - Gemini adapter and deterministic mock provider with graceful recovery if the live API fails
 - `services/blob`
   - Azure Blob adapter and mock storage
 - `services/deid`
@@ -98,3 +99,4 @@ npm run dev
 - Voice upload uses a mock transcript path for MVP behavior
 - Image handling produces non-diagnostic summaries only
 - The project is optimized for a strong local demo path first, with clean adapter seams for real services later
+- The live Gemini key is read only on the server from `GEMINI_API_KEY`

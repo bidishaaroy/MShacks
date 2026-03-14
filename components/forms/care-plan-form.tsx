@@ -1,7 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,21 @@ export function CarePlanForm({ carePlan }: { carePlan: CarePlan }) {
       escalationThresholdsJson: carePlan.escalationThresholdsJson
     }
   });
+  const thresholds = useWatch({
+    control: form.control,
+    name: "escalationThresholdsJson"
+  }) ?? carePlan.escalationThresholdsJson;
+
+  useEffect(() => {
+    form.reset({
+      patientId: carePlan.patientId,
+      diagnosisSummary: carePlan.diagnosisSummary,
+      treatmentPlan: carePlan.treatmentPlan,
+      riskFactors: carePlan.riskFactors,
+      personalizedNotes: carePlan.personalizedNotes,
+      escalationThresholdsJson: carePlan.escalationThresholdsJson
+    });
+  }, [carePlan, form]);
 
   async function submit(values: CarePlanValues) {
     const response = await fetch("/api/doctor/care-plan", {
@@ -36,11 +52,20 @@ export function CarePlanForm({ carePlan }: { carePlan: CarePlan }) {
     });
 
     if (!response.ok) {
-      toast.error("Care plan update failed");
+      toast.error("Unable to save care plan");
       return;
     }
 
-    toast.success("Care plan saved");
+    const payload = (await response.json()) as { carePlan: CarePlan };
+    form.reset({
+      patientId: payload.carePlan.patientId,
+      diagnosisSummary: payload.carePlan.diagnosisSummary,
+      treatmentPlan: payload.carePlan.treatmentPlan,
+      riskFactors: payload.carePlan.riskFactors,
+      personalizedNotes: payload.carePlan.personalizedNotes,
+      escalationThresholdsJson: payload.carePlan.escalationThresholdsJson
+    });
+    toast.success("Care plan saved successfully");
     router.refresh();
   }
 
@@ -67,11 +92,14 @@ export function CarePlanForm({ carePlan }: { carePlan: CarePlan }) {
           <Label htmlFor="redFlags">Red flags</Label>
           <Input
             id="redFlags"
-            defaultValue={carePlan.escalationThresholdsJson.redFlags.join(", ")}
+            value={thresholds.redFlags.join(", ")}
             onChange={(event) =>
               form.setValue(
                 "escalationThresholdsJson.redFlags",
-                event.target.value.split(",").map((value) => value.trim())
+                event.target.value
+                  .split(",")
+                  .map((value) => value.trim())
+                  .filter(Boolean)
               )
             }
           />
@@ -80,11 +108,14 @@ export function CarePlanForm({ carePlan }: { carePlan: CarePlan }) {
           <Label htmlFor="doctorReviewTriggers">Doctor review triggers</Label>
           <Input
             id="doctorReviewTriggers"
-            defaultValue={carePlan.escalationThresholdsJson.doctorReviewTriggers.join(", ")}
+            value={thresholds.doctorReviewTriggers.join(", ")}
             onChange={(event) =>
               form.setValue(
                 "escalationThresholdsJson.doctorReviewTriggers",
-                event.target.value.split(",").map((value) => value.trim())
+                event.target.value
+                  .split(",")
+                  .map((value) => value.trim())
+                  .filter(Boolean)
               )
             }
           />
@@ -93,18 +124,21 @@ export function CarePlanForm({ carePlan }: { carePlan: CarePlan }) {
           <Label htmlFor="adminTasks">Admin tasks</Label>
           <Input
             id="adminTasks"
-            defaultValue={carePlan.escalationThresholdsJson.adminTasks.join(", ")}
+            value={thresholds.adminTasks.join(", ")}
             onChange={(event) =>
               form.setValue(
                 "escalationThresholdsJson.adminTasks",
-                event.target.value.split(",").map((value) => value.trim())
+                event.target.value
+                  .split(",")
+                  .map((value) => value.trim())
+                  .filter(Boolean)
               )
             }
           />
         </div>
       </div>
       <Button type="submit" className="justify-self-start">
-        Save care plan
+        {form.formState.isSubmitting ? "Saving..." : "Save care plan"}
       </Button>
     </form>
   );

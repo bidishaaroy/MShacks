@@ -34,3 +34,12 @@ export const uploadSchema = z.object({
   fileName: z.string(),
   payload: z.string().min(1)
 });
+
+export const appointmentSchema = z.object({
+  patientId: z.string(),
+  scheduledFor: z.string(),
+  reason: z.string().min(3),
+  status: z.enum(["PENDING", "SCHEDULED", "URGENT", "COMPLETED"]).default("SCHEDULED"),
+  assignedTo: z.string().min(2),
+  notes: z.string().default("")
+});

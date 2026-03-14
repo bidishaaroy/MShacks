@@ -5,6 +5,7 @@ export type UploadType = "IMAGE" | "AUDIO" | "DOCUMENT";
 export type RiskLevel = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
 export type EscalationStatus = "OPEN" | "IN_REVIEW" | "RESOLVED";
 export type ConversationStatus = "ACTIVE" | "ESCALATED" | "RESOLVED";
+export type AppointmentStatus = "PENDING" | "SCHEDULED" | "URGENT" | "COMPLETED";
 
 export interface AppUser {
   id: string;
@@ -137,6 +138,51 @@ export interface AdminTask {
   createdAt: string;
 }
 
+export interface Appointment {
+  id: string;
+  patientId: string;
+  scheduledFor: string;
+  scheduledByRole: Role;
+  scheduledByName: string;
+  reason: string;
+  status: AppointmentStatus;
+  assignedTo: string;
+  notes: string;
+}
+
+export interface ChecklistItem {
+  id: string;
+  label: string;
+  done: boolean;
+}
+
+export interface AdminSuggestion {
+  id: string;
+  title: string;
+  detail: string;
+  selected: boolean;
+  createUrgentAppointment?: boolean;
+}
+
+export interface ClientSummary {
+  id: string;
+  name: string;
+  status: string;
+  nextReview: string;
+  summary: string;
+}
+
+export interface DoctorThread {
+  id: string;
+  patientName: string;
+  summary: string;
+  messages: Message[];
+}
+
+export interface CarePlanOption extends CarePlan {
+  patientName: string;
+}
+
 export interface DemoStore {
   clinic: Clinic;
   users: AppUser[];
@@ -154,4 +200,10 @@ export interface DemoStore {
   clinicPolicies: ClinicPolicy[];
   styleNotes: StyleNote[];
   adminTasks: AdminTask[];
+  carePlanOptions?: CarePlanOption[];
+  appointments: Appointment[];
+  onboardingChecklist: ChecklistItem[];
+  adminSuggestions: AdminSuggestion[];
+  clientSummaries: ClientSummary[];
+  doctorThreads: DoctorThread[];
 }
